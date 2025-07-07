@@ -1,88 +1,154 @@
-import { useState } from 'react';
-import { NavLink, BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Skull, Users, Zap, Gamepad2, Settings, Bot } from 'lucide-react';
-import { CharacterCreator } from './components/CharacterCreator';
-import { EntityList } from './components/EntityList';
-import { Character } from './lib/types';
-
-const navItems = [
-  { to: '/characters', icon: Users, label: 'Characters' },
-  { to: '/combat', icon: Zap, label: 'Combat' },
-  { to: '/environment', icon: Gamepad2, label: 'Environment' },
-  { to: '/sessions', icon: Settings, label: 'Sessions' },
-  { to: '/ai', icon: Bot, label: 'AI Tools' },
-];
+import { useState } from 'react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Skull, Users, Gamepad2, Zap, Settings, Save, Database, Eye, Sparkles } from 'lucide-react'
+import { CharacterCreator } from './components/CharacterCreator'
+import { CombatManager } from './components/CombatManager'
+import { EnvironmentEditor } from './components/EnvironmentEditor'
+import { SessionManager } from './components/SessionManager'
+import { EntityList } from './components/EntityList'
+import { AIPromptPanel } from './components/AIPromptPanel'
+import { useGameState } from './hooks/useGameState'
+import { motion } from 'framer-motion'
 
 function App() {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
-
-  const handleSaveCharacter = (character: Character) => {
-    setCharacters(prev => [...prev.filter(c => c.id !== character.id), character]);
-    setSelectedCharacter(null); // Deselect after saving
-  };
-
-  const handleSelectCharacter = (character: Character) => {
-    setSelectedCharacter(character);
-  };
-
-  const CharacterPage = () => (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-2">
-        <CharacterCreator onSave={handleSaveCharacter} character={selectedCharacter} />
-      </div>
-      <div>
-        <EntityList characters={characters} onSelectCharacter={handleSelectCharacter} />
-      </div>
-    </div>
-  );
+  const [activeTab, setActiveTab] = useState('entities')
+  const { gameState, dispatch } = useGameState()
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-900 text-gray-200 font-sans flex">
-        <Sidebar />
-        <main className="flex-1 p-8 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Navigate to="/characters" replace />} />
-            <Route path="/characters" element={<CharacterPage />} />
-            <Route path="/combat" element={<div className='text-2xl'>Combat Manager</div>} />
-            <Route path="/environment" element={<div className='text-2xl'>Environment Editor</div>} />
-            <Route path="/sessions" element={<div className='text-2xl'>Session Manager</div>} />
-            <Route path="/ai" element={<div className='text-2xl'>AI Tools</div>} />
-          </Routes>
-        </main>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white overflow-hidden">
+      {/* Animated background elements */}
+      <div className="fixed inset-0 opacity-10">
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-red-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
-    </Router>
-  );
-}
+      
+      <div className="relative z-10">
+        {/* Header */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="border-b border-purple-500/20 bg-black/20 backdrop-blur-sm"
+        >
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <Skull className="h-8 w-8 text-red-500" />
+                  <div>
+                    <h1 className="text-2xl font-bold bg-gradient-to-r from-red-400 to-purple-400 bg-clip-text text-transparent">
+                      FORSAKEN CONTROL PANEL
+                    </h1>
+                    <p className="text-sm text-purple-300">Dynamic Horror Game Management System</p>
+                  </div>
+                </div>
+                <Badge variant="destructive" className="bg-red-500/20 text-red-300 border-red-500/30">
+                  GLITCH ACTIVE
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Session
+                </Button>
+                <Button variant="outline" size="sm" className="border-purple-500/30 text-purple-300 hover:bg-purple-500/20">
+                  <Database className="h-4 w-4 mr-2" />
+                  Load
+                </Button>
+                <div className="flex items-center space-x-2 text-sm text-purple-300">
+                  <Eye className="h-4 w-4" />
+                  <span>Entities: {gameState.entities.length}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-const Sidebar = () => (
-  <aside className="w-64 bg-gray-950/50 border-r border-purple-500/20 flex flex-col">
-    <div className="p-6 border-b border-purple-500/20 flex items-center space-x-3">
-      <Skull className="h-10 w-10 text-red-500 animate-glitch" />
-      <div>
-        <h1 className="text-lg font-bold text-red-400">FORSAKEN</h1>
-        <p className="text-xs text-purple-300">CONTROL PANEL</p>
+        {/* Main Content */}
+        <div className="container mx-auto px-6 py-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-5 bg-black/40 border border-purple-500/30">
+              <TabsTrigger value="entities" className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-300">
+                <Users className="h-4 w-4 mr-2" />
+                Entities
+              </TabsTrigger>
+              <TabsTrigger value="combat" className="data-[state=active]:bg-red-500/20 data-[state=active]:text-red-300">
+                <Zap className="h-4 w-4 mr-2" />
+                Combat
+              </TabsTrigger>
+              <TabsTrigger value="environment" className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-300">
+                <Gamepad2 className="h-4 w-4 mr-2" />
+                Environment
+              </TabsTrigger>
+              <TabsTrigger value="session" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+                <Settings className="h-4 w-4 mr-2" />
+                Session
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="data-[state=active]:bg-yellow-500/20 data-[state=active]:text-yellow-300">
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI Generator
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="mt-6 space-y-6">
+              <TabsContent value="entities" className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="grid grid-cols-1 xl:grid-cols-3 gap-6"
+                >
+                  <div className="xl:col-span-2">
+                    <CharacterCreator dispatch={dispatch} />
+                  </div>
+                  <div>
+                    <EntityList gameState={gameState} dispatch={dispatch} />
+                  </div>
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="combat" className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <CombatManager gameState={gameState} dispatch={dispatch} />
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="environment" className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <EnvironmentEditor gameState={gameState} dispatch={dispatch} />
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="session" className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <SessionManager gameState={gameState} dispatch={dispatch} />
+                </motion.div>
+              </TabsContent>
+
+              <TabsContent value="ai" className="space-y-6">
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <AIPromptPanel gameState={gameState} dispatch={dispatch} />
+                </motion.div>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </div>
       </div>
     </div>
-    <nav className="flex-1 p-4 space-y-2">
-      {navItems.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          className={({ isActive }) =>
-            `flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors ` +
-            (isActive
-              ? 'bg-purple-500/20 text-purple-200'
-              : 'text-gray-400 hover:bg-purple-500/10 hover:text-purple-300')
-          }
-        >
-          <item.icon className="h-5 w-5 mr-3" />
-          {item.label}
-        </NavLink>
-      ))}
-    </nav>
-  </aside>
-);
+  )
+}
 
-export default App;
+export default App
