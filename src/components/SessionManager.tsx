@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import { GameState, GameAction } from "@/hooks/useGameState"
 import { 
   Save, 
-  Load, 
+  Upload, 
   Clock, 
   MapPin, 
   FileText, 
@@ -183,7 +183,7 @@ export function SessionManager({ gameState, dispatch }: SessionManagerProps) {
                 onClick={loadSession}
                 className="border-blue-500/30 text-blue-300"
               >
-                <Load className="h-4 w-4 mr-2" />
+                <Upload className="h-4 w-4 mr-2" />
                 Load Session
               </Button>
               <Button
