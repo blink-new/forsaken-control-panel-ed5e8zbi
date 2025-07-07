@@ -85,7 +85,7 @@ export interface GameState {
   aiSuggestions: string[]
 }
 
-type GameAction = 
+export type GameAction = 
   | { type: 'ADD_ENTITY'; entity: GameEntity }
   | { type: 'UPDATE_ENTITY'; id: string; updates: Partial<GameEntity> }
   | { type: 'DELETE_ENTITY'; id: string }
