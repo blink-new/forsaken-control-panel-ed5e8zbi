@@ -1,5 +1,9 @@
-import { NavLink, Outlet, BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Skull, Users, Zap, Gamepad2, Settings, Bot } from 'lucide-react';
+import { CharacterCreator } from './components/CharacterCreator';
+import { EntityList } from './components/EntityList';
+import { Character } from './lib/types';
 
 const navItems = [
   { to: '/characters', icon: Users, label: 'Characters' },
@@ -10,6 +14,29 @@ const navItems = [
 ];
 
 function App() {
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+
+  const handleSaveCharacter = (character: Character) => {
+    setCharacters(prev => [...prev.filter(c => c.id !== character.id), character]);
+    setSelectedCharacter(null); // Deselect after saving
+  };
+
+  const handleSelectCharacter = (character: Character) => {
+    setSelectedCharacter(character);
+  };
+
+  const CharacterPage = () => (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2">
+        <CharacterCreator onSave={handleSaveCharacter} character={selectedCharacter} />
+      </div>
+      <div>
+        <EntityList characters={characters} onSelectCharacter={handleSelectCharacter} />
+      </div>
+    </div>
+  );
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-900 text-gray-200 font-sans flex">
@@ -17,7 +44,11 @@ function App() {
         <main className="flex-1 p-8 overflow-y-auto">
           <Routes>
             <Route path="/" element={<Navigate to="/characters" replace />} />
-            <Route path="/*" element={<MainContent />} />
+            <Route path="/characters" element={<CharacterPage />} />
+            <Route path="/combat" element={<div className='text-2xl'>Combat Manager</div>} />
+            <Route path="/environment" element={<div className='text-2xl'>Environment Editor</div>} />
+            <Route path="/sessions" element={<div className='text-2xl'>Session Manager</div>} />
+            <Route path="/ai" element={<div className='text-2xl'>AI Tools</div>} />
           </Routes>
         </main>
       </div>
@@ -52,20 +83,6 @@ const Sidebar = () => (
       ))}
     </nav>
   </aside>
-);
-
-const MainContent = () => (
-  <div className="w-full">
-    <Outlet />
-    {/* Placeholder for the different views */}
-    <Routes>
-        <Route path="characters" element={<div className='text-2xl'>Character Creator</div>} />
-        <Route path="combat" element={<div className='text-2xl'>Combat Manager</div>} />
-        <Route path="environment" element={<div className='text-2xl'>Environment Editor</div>} />
-        <Route path="sessions" element={<div className='text-2xl'>Session Manager</div>} />
-        <Route path="ai" element={<div className='text-2xl'>AI Tools</div>} />
-    </Routes>
-  </div>
 );
 
 export default App;
