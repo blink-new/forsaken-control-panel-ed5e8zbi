@@ -50,8 +50,8 @@ export interface Session {
     name: string;
     characters: Character[];
     environment: Environment;
-    activeTimers: Record<string, any>[];
-    activeFX: Record<string, any>[];
+    activeTimers: Record<string, unknown>[];
+    activeFX: Record<string, unknown>[];
 }
 
 export interface GameState {
